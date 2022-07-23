@@ -1,5 +1,6 @@
+import 'package:appsize/appsize.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chips_input/flutter_chips_input.dart';
+import 'package:wallet_words/wallet_words.dart';
 
 void main() => runApp(const MyApp());
 
@@ -10,12 +11,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Chips Input',
+      title: 'Wallet words',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         // brightness: Brightness.dark,
       ),
       home: const MyHomePage(),
+      builder: (context, child) {
+        return AppSize(builder: (context, orientation, deviceType) => child!);
+      },
     );
   }
 }
@@ -24,39 +28,75 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _chipKey = GlobalKey<ChipsInputState>();
+  final _chipKey = GlobalKey<WordsChipState>();
 
   @override
   Widget build(BuildContext context) {
     const mockResults = <AppProfile>[
-      AppProfile('John Doe', 'jdoe@flutter.io',
-          'https://d2gg9evh47fn9z.cloudfront.net/800px_COLOURBOX4057996.jpg'),
-      AppProfile('Paul', 'paul@google.com',
-          'https://mbtskoudsalg.com/images/person-stock-image-png.png'),
-      AppProfile('Fred', 'fred@google.com',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('Brian', 'brian@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('John', 'john@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('Thomas', 'thomas@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('Nelly', 'nelly@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('Marie', 'marie@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('Charlie', 'charlie@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('Diana', 'diana@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('Ernie', 'ernie@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
-      AppProfile('Gina', 'fred@flutter.io',
-          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'),
+      AppProfile(
+        'John Doe',
+        'jdoe@flutter.io',
+        'https://d2gg9evh47fn9z.cloudfront.net/800px_COLOURBOX4057996.jpg',
+      ),
+      AppProfile(
+        'Paul',
+        'paul@google.com',
+        'https://mbtskoudsalg.com/images/person-stock-image-png.png',
+      ),
+      AppProfile(
+        'Fred',
+        'fred@google.com',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'Brian',
+        'brian@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'John',
+        'john@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'Thomas',
+        'thomas@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'Nelly',
+        'nelly@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'Marie',
+        'marie@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'Charlie',
+        'charlie@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'Diana',
+        'diana@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'Ernie',
+        'ernie@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
+      AppProfile(
+        'Gina',
+        'fred@flutter.io',
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+      ),
     ];
 
     return Scaffold(
@@ -67,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              ChipsInput(
+              WordsChip(
                 key: _chipKey,
                 /*initialValue: [
                   AppProfile('John Doe', 'jdoe@flutter.io',
@@ -78,9 +118,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 keyboardAppearance: Brightness.dark,
                 textCapitalization: TextCapitalization.words,
                 // enabled: false,
-                // maxChips: 5,
+                maxChips: 5,
                 textStyle: const TextStyle(
-                    height: 1.5, fontFamily: 'Roboto', fontSize: 16),
+                  height: 1.5,
+                  fontFamily: 'Roboto',
+                  fontSize: 16,
+                ),
                 decoration: const InputDecoration(
                   // prefixIcon: Icon(Icons.search),
                   // hintText: formControl.hint,
@@ -91,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 findSuggestions: (String query) {
                   // print("Query: '$query'");
                   if (query.isNotEmpty) {
-                    var lowercaseQuery = query.toLowerCase();
+                    final lowercaseQuery = query.toLowerCase();
                     return mockResults.where((profile) {
                       return profile.name
                               .toLowerCase()
@@ -100,11 +143,14 @@ class _MyHomePageState extends State<MyHomePage> {
                               .toLowerCase()
                               .contains(query.toLowerCase());
                     }).toList(growable: false)
-                      ..sort((a, b) => a.name
-                          .toLowerCase()
-                          .indexOf(lowercaseQuery)
-                          .compareTo(
-                              b.name.toLowerCase().indexOf(lowercaseQuery)));
+                      ..sort(
+                        (a, b) => a.name
+                            .toLowerCase()
+                            .indexOf(lowercaseQuery)
+                            .compareTo(
+                              b.name.toLowerCase().indexOf(lowercaseQuery),
+                            ),
+                      );
                   }
                   // return <AppProfile>[];
                   return mockResults;
@@ -113,6 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   // print(data);
                 },
                 chipBuilder: (context, state, dynamic profile) {
+                  profile as AppProfile;
                   return InputChip(
                     key: ObjectKey(profile),
                     label: Text(profile.name),
@@ -124,6 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                 },
                 suggestionBuilder: (context, state, dynamic profile) {
+                  profile as AppProfile;
                   return ListTile(
                     key: ObjectKey(profile),
                     leading: CircleAvatar(
@@ -199,10 +247,13 @@ class _MyHomePageState extends State<MyHomePage> {
               ),*/
               ElevatedButton(
                 onPressed: () {
-                  _chipKey.currentState!.selectSuggestion(const AppProfile(
+                  _chipKey.currentState!.selectSuggestion(
+                    const AppProfile(
                       'Gina',
                       'fred@flutter.io',
-                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'));
+                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+                    ),
+                  );
                 },
                 child: const Text('Add Chip'),
               ),
@@ -215,11 +266,14 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class AppProfile {
+  const AppProfile(
+    this.name,
+    this.email,
+    this.imageUrl,
+  );
   final String name;
   final String email;
   final String imageUrl;
-
-  const AppProfile(this.name, this.email, this.imageUrl);
 
   @override
   bool operator ==(Object other) =>

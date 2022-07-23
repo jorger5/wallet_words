@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class SuggestionsBoxController {
+  SuggestionsBoxController(
+    this.context,
+  );
   final BuildContext context;
 
   OverlayEntry? overlayEntry;
@@ -9,11 +12,9 @@ class SuggestionsBoxController {
 
   bool get isOpened => _isOpened;
 
-  SuggestionsBoxController(this.context);
-
   void open() {
     if (_isOpened) return;
-    assert(overlayEntry != null);
+    assert(overlayEntry != null, 'Overlay entry must not be null');
     Overlay.of(context)!.insert(overlayEntry!);
     _isOpened = true;
   }
@@ -21,7 +22,7 @@ class SuggestionsBoxController {
   void close() {
     // debugPrint("Closing suggestion box");
     if (!_isOpened) return;
-    assert(overlayEntry != null);
+    assert(overlayEntry != null, 'Overlay entry must not be null');
     overlayEntry!.remove();
     _isOpened = false;
   }

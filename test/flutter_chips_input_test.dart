@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_chips_input/flutter_chips_input.dart';
+import 'package:wallet_words/wallet_words.dart';
 
 void main() {
   const allContacts = [
@@ -14,7 +15,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: ChipsInput<String>(
+          body: WordsChip<String>(
             initialValue: allContacts.sublist(1, 3),
             maxChips: 3,
             findSuggestions: (String query) => query.isNotEmpty

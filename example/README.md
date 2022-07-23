@@ -1,6 +1,6 @@
 # example
 
-Example Project for flutter_chips_input
+Example Project for wallet_words
 
 ## Getting Started
 
