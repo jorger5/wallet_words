@@ -34,7 +34,7 @@ void main() {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               );
             },
-            suggestionBuilder: (context, state, contact) {
+            suggestionBuilder: (context, state, contact, qty) {
               return ListTile(
                 key: ValueKey(contact),
                 title: Text(contact),

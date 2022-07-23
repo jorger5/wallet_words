@@ -3,49 +3,34 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wallet_words/src/constants.dart';
+import 'package:wallet_words/src/extensions/extensions.dart';
+import 'package:wallet_words/src/helpers.dart';
 
 import 'package:wallet_words/src/suggestions_box_controller.dart';
 import 'package:wallet_words/src/text_cursor.dart';
-
-typedef WordsChipSuggestions<T> = FutureOr<List<T>> Function(String query);
-typedef WordSelected<T> = void Function(T data, bool selected);
-typedef ChipsBuilder<T> = Widget Function(
-  BuildContext context,
-  WordsChipState<T> state,
-  T data,
-);
-
-const kObjectReplacementChar = 0xFFFD;
-
-extension on TextEditingValue {
-  String get normalCharactersText => String.fromCharCodes(
-        text.codeUnits.where((ch) => ch != kObjectReplacementChar),
-      );
-
-  List<int> get replacementCharacters => text.codeUnits
-      .where((ch) => ch == kObjectReplacementChar)
-      .toList(growable: false);
-
-  int get replacementCharactersCount => replacementCharacters.length;
-}
+import 'package:wallet_words/src/type_defs/type_defs.dart';
 
 class WordsChip<T> extends StatefulWidget {
   const WordsChip({
     super.key,
-    this.initialValue = const [],
-    this.decoration = const InputDecoration(),
-    this.enabled = true,
     required this.chipBuilder,
     required this.suggestionBuilder,
     required this.findSuggestions,
     required this.onChanged,
     required this.maxChips,
+    this.initialValue = const [],
+    this.decoration = const InputDecoration(border: InputBorder.none),
+    this.enabled = true,
     this.textStyle,
     this.suggestionsBoxMaxHeight,
+    this.textBoxDecoration = const BoxDecoration(),
+    this.textBoxHeight = 200,
+    this.showSuggestionsOnTop = true,
     this.inputType = TextInputType.text,
     this.textOverflow = TextOverflow.clip,
     this.obscureText = false,
-    this.autocorrect = true,
+    this.autocorrect = false,
     this.actionLabel,
     this.inputAction = TextInputAction.done,
     this.keyboardAppearance = Brightness.light,
@@ -66,7 +51,10 @@ class WordsChip<T> extends StatefulWidget {
   final WordsChipSuggestions<T> findSuggestions;
   final ValueChanged<List<T>> onChanged;
   final ChipsBuilder<T> chipBuilder;
-  final ChipsBuilder<T> suggestionBuilder;
+  final SuggestionsBuilder<T> suggestionBuilder;
+  final bool showSuggestionsOnTop;
+  final BoxDecoration textBoxDecoration;
+  final double textBoxHeight;
   final List<T> initialValue;
   final int? maxChips;
   final double? suggestionsBoxMaxHeight;
@@ -82,8 +70,6 @@ class WordsChip<T> extends StatefulWidget {
   final FocusNode? focusNode;
   final List<T>? initialSuggestions;
   final BoxDecoration suggestionsBoxDecoration;
-
-  // final Color cursorColor;
 
   final TextCapitalization textCapitalization;
 
@@ -105,7 +91,6 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
 
   TextInputConfiguration get textInputConfiguration => TextInputConfiguration(
         inputType: widget.inputType,
-        obscureText: widget.obscureText,
         autocorrect: widget.autocorrect,
         actionLabel: widget.actionLabel,
         inputAction: widget.inputAction,
@@ -132,6 +117,12 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
   void initState() {
     super.initState();
     _chips.addAll(widget.initialValue);
+    final initialText =
+        String.fromCharCodes(_chips.map((_) => kObjectReplacementChar));
+    _value = TextEditingValue(
+      text: initialText,
+      selection: TextSelection.collapsed(offset: initialText.length),
+    );
     _suggestions = widget.initialSuggestions
         ?.where((r) => !_chips.contains(r))
         .toList(growable: false);
@@ -142,7 +133,13 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     _effectiveFocusNode.canRequestFocus = _canRequestFocus;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _initOverlayEntry();
+      final renderBox = context.findRenderObject() as RenderBox?;
+      assert(
+        renderBox != null,
+        "This cannot be null because it's called after the build",
+      );
+
+      _initOverlayEntry(renderBox!);
       if (mounted && widget.autofocus) {
         FocusScope.of(context).autofocus(_effectiveFocusNode);
       }
@@ -182,24 +179,19 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     }
   }
 
-  void _initOverlayEntry() {
+  void _initOverlayEntry(RenderBox renderBox) {
     _suggestionsBoxController.overlayEntry = OverlayEntry(
       builder: (context) {
-        final size = renderBox!.size;
-        final renderBoxOffset = renderBox!.localToGlobal(Offset.zero);
-        final topAvailableSpace = renderBoxOffset.dy;
-        final mq = MediaQuery.of(context);
-        final bottomAvailableSpace = mq.size.height -
-            mq.viewInsets.bottom -
-            renderBoxOffset.dy -
-            size.height;
-        var suggestionBoxHeight = max(topAvailableSpace, bottomAvailableSpace);
-        if (null != widget.suggestionsBoxMaxHeight) {
+        final size = renderBox.size;
+        final renderBoxOffset = renderBox.localToGlobal(Offset.zero);
+        final showTop = widget.showSuggestionsOnTop;
+        var suggestionBoxHeight =
+            UIHelpers.getSuggestedBoxHeight(context, size, renderBoxOffset);
+        if (widget.suggestionsBoxMaxHeight != null) {
           suggestionBoxHeight =
               min(suggestionBoxHeight, widget.suggestionsBoxMaxHeight!);
         }
-        final showTop = topAvailableSpace > bottomAvailableSpace;
-        // print("showTop: $showTop" );
+
         final compositedTransformFollowerOffset =
             showTop ? Offset(0, -size.height) : Offset.zero;
 
@@ -225,6 +217,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                                 context,
                                 this,
                                 _suggestions![index] as T,
+                                _suggestions?.length ?? 0,
                               )
                             : Container();
                       },
@@ -367,7 +360,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         ),
       );
     }
-    _closeInputConnectionIfNeeded(); //Hack for #34 (https://github.com/danvick/wallet_words/issues/34#issuecomment-684505282). TODO: Find permanent fix
+    // _closeInputConnectionIfNeeded(); //Hack for #34 (https://github.com/danvick/wallet_words/issues/34#issuecomment-684505282). TODO: Find permanent fix
     _textInputConnection ??= TextInput.attach(this, textInputConfiguration);
     _textInputConnection?.setEditingState(_value);
     _textInputConnection?.show();
@@ -488,11 +481,15 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                 decoration: widget.decoration,
                 isFocused: _effectiveFocusNode.hasFocus,
                 isEmpty: _value.text.isEmpty && _chips.isEmpty,
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: chipsChildren,
+                child: Container(
+                  height: widget.textBoxHeight,
+                  decoration: widget.textBoxDecoration,
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: chipsChildren,
+                  ),
                 ),
               ),
             ),

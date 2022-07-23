@@ -117,8 +117,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 // allowChipEditing: true,
                 keyboardAppearance: Brightness.dark,
                 textCapitalization: TextCapitalization.words,
+                textBoxDecoration: BoxDecoration(
+                  // color: Colors.red.withOpacity(0.3),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
                 // enabled: false,
-                maxChips: 5,
+                maxChips: 10,
                 textStyle: const TextStyle(
                   height: 1.5,
                   fontFamily: 'Roboto',
@@ -170,7 +177,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   );
                 },
-                suggestionBuilder: (context, state, dynamic profile) {
+                suggestionBuilder:
+                    (context, state, dynamic profile, mockResults) {
                   profile as AppProfile;
                   return ListTile(
                     key: ObjectKey(profile),
@@ -182,6 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     onTap: () => state.selectSuggestion(profile),
                   );
                 },
+                showSuggestionsOnTop: false,
               ),
               const TextField(),
               /*ChipsInput(
@@ -274,16 +283,6 @@ class AppProfile {
   final String name;
   final String email;
   final String imageUrl;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AppProfile &&
-          runtimeType == other.runtimeType &&
-          name == other.name;
-
-  @override
-  int get hashCode => name.hashCode;
 
   @override
   String toString() {
