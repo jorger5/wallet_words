@@ -4,22 +4,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wallet_words/wallet_words.dart';
 
 void main() {
-  const allContacts = [
-    'John Doe',
-    'Jane Doe',
-    'John Smith',
+  const words = [
+    'Hello',
+    'Desk',
+    'Abandone',
     'Jane Smith',
   ];
 
-  testWidgets('ChipsInput', (WidgetTester tester) async {
+  testWidgets('Chips Inputs', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: WordsChip<String>(
-            initialValue: allContacts.sublist(1, 3),
+            initialValue: words.sublist(1, 3),
             maxChips: 3,
             findSuggestions: (String query) => query.isNotEmpty
-                ? allContacts
+                ? words
                     .where((_) => _.toLowerCase().contains(query.toLowerCase()))
                     .toList()
                 : const [],

@@ -6,31 +6,32 @@ import 'package:flutter/services.dart';
 import 'package:wallet_words/src/constants.dart';
 import 'package:wallet_words/src/extensions/extensions.dart';
 import 'package:wallet_words/src/helpers.dart';
+import 'package:wallet_words/src/models/type_defs.dart';
 
 import 'package:wallet_words/src/suggestions_box_controller.dart';
 import 'package:wallet_words/src/text_cursor.dart';
-import 'package:wallet_words/src/type_defs/type_defs.dart';
 
 class WordsChip<T> extends StatefulWidget {
   const WordsChip({
     super.key,
     required this.chipBuilder,
-    required this.suggestionBuilder,
-    required this.findSuggestions,
     required this.onChanged,
-    required this.maxChips,
+    this.suggestionBuilder,
+    this.findSuggestions,
+    this.maxChips = 12,
     this.initialValue = const [],
     this.decoration = const InputDecoration(border: InputBorder.none),
     this.enabled = true,
     this.textStyle,
     this.suggestionsBoxMaxHeight,
+    this.validator,
     this.textBoxDecoration = const BoxDecoration(),
     this.textBoxHeight = 200,
+    this.textBoxWidth,
+    this.textBoxPadding = const EdgeInsets.all(8),
     this.showSuggestionsOnTop = true,
     this.inputType = TextInputType.text,
     this.textOverflow = TextOverflow.clip,
-    this.obscureText = false,
-    this.autocorrect = false,
     this.actionLabel,
     this.inputAction = TextInputAction.done,
     this.keyboardAppearance = Brightness.light,
@@ -40,38 +41,132 @@ class WordsChip<T> extends StatefulWidget {
     this.focusNode,
     this.initialSuggestions,
     this.suggestionsBoxDecoration = const BoxDecoration(),
-  }) : assert(
+    this.showErrorMsg = false,
+    this.showSuccessMsg = false,
+    this.errorIcon,
+    this.warningIcon,
+    this.successIcon,
+    this.errorMsg,
+    this.warningMsg,
+    this.successMsg,
+    this.showWarningMsg = false,
+    this.wordCountText,
+  })  : assert(
           maxChips == null || initialValue.length <= maxChips,
           'Max chips must not be null and greater than initial value length ',
+        ),
+        assert(
+          suggestionBuilder != null && findSuggestions != null,
+          'Suggestion builder is not null, then find suggestions must not be null',
         );
 
+  // Builders
+  /// Builder used to create the chips.
+  final ChipsBuilder<T> chipBuilder;
+
+  /// Builder used to create the suggestions.
+  final SuggestionsBuilder<T>? suggestionBuilder;
+
+  /// Contains search logic to find the suggestions.
+  final WordsChipSuggestions<T>? findSuggestions;
+
+  /// Triggered when there's a new entry in the [List] of [T].
+  final ValueChanged<List<T>> onChanged;
+
+  /// Offers some customization for the text box.
   final InputDecoration decoration;
+
+  /// [TextStyle] of the text written in the box.
   final TextStyle? textStyle;
   final bool enabled;
-  final WordsChipSuggestions<T> findSuggestions;
-  final ValueChanged<List<T>> onChanged;
-  final ChipsBuilder<T> chipBuilder;
-  final SuggestionsBuilder<T> suggestionBuilder;
+
+  /// Sets to show the suggestions on top of the text box.
   final bool showSuggestionsOnTop;
+
+  /// [BoxDecoration] of the text box where the user writes the text.
   final BoxDecoration textBoxDecoration;
+
+  /// Height of the text box.
   final double textBoxHeight;
+
+  /// Width of the text box.
+  final double? textBoxWidth;
+
+  /// Padding for the chips in the text box.
+  final EdgeInsets textBoxPadding;
+
+  /// [List] of [T] with initial values to show
   final List<T> initialValue;
+
+  /// Optional list of [T] to suggest
+  final List<T>? initialSuggestions;
+
+  /// Limit of the number of chips allowed.
   final int? maxChips;
+
+  /// Limit of the suggestions box. It is compared with the minimun allowed space.
   final double? suggestionsBoxMaxHeight;
+
+  /// Some text input customization.
   final TextInputType inputType;
   final TextOverflow textOverflow;
-  final bool obscureText;
-  final bool autocorrect;
+
+  /// What text to display in the text input control's action button..
   final String? actionLabel;
+
+  /// What kind of action to request for the action button on the IME.
   final TextInputAction inputAction;
+
+  /// [Brightness] of the keyboard.
   final Brightness keyboardAppearance;
+
+  /// Offers [TextCapitalization] options.
+  final TextCapitalization textCapitalization;
+
+  /// Sets to autofocus the text box as soon as widget is built.
   final bool autofocus;
   final bool allowChipEditing;
+
+  /// Allows to set an external [FocusNode] for more control.
   final FocusNode? focusNode;
-  final List<T>? initialSuggestions;
+
   final BoxDecoration suggestionsBoxDecoration;
 
-  final TextCapitalization textCapitalization;
+  /// Optional function to validate input from user
+  /// and show error message if input is invalid.
+  final String Function(String)? validator;
+
+  // Word counts
+  /// Word count to show
+  final Widget? wordCountText;
+
+  // Status messsages
+  /// Show success message
+  final bool showSuccessMsg;
+
+  /// Success icon to show before [successMsg]
+  final Widget? successIcon;
+
+  /// Success message to show after [successIcon]
+  final Widget? successMsg;
+
+  /// Show error message
+  final bool showErrorMsg;
+
+  /// Error icon to show before [errorMsg]
+  final Widget? errorIcon;
+
+  /// Error message to show after [errorIcon]
+  final Widget? errorMsg;
+
+  /// Show warning message
+  final bool showWarningMsg;
+
+  /// Warning icon to show before [warningMsg]
+  final Widget? warningIcon;
+
+  /// Warning message to show after [warningIcon]
+  final Widget? warningMsg;
 
   @override
   WordsChipState<T> createState() => WordsChipState<T>();
@@ -80,6 +175,7 @@ class WordsChip<T> extends StatefulWidget {
 class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
   Set<T> _chips = <T>{};
   List<T?>? _suggestions;
+  bool _showSuggestions = false;
   final StreamController<List<T?>?> _suggestionsStreamController =
       StreamController<List<T>?>.broadcast();
   int _searchId = 0;
@@ -91,7 +187,6 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
 
   TextInputConfiguration get textInputConfiguration => TextInputConfiguration(
         inputType: widget.inputType,
-        autocorrect: widget.autocorrect,
         actionLabel: widget.actionLabel,
         inputAction: widget.inputAction,
         keyboardAppearance: widget.keyboardAppearance,
@@ -127,6 +222,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         ?.where((r) => !_chips.contains(r))
         .toList(growable: false);
     _suggestionsBoxController = SuggestionsBoxController(context);
+    _showSuggestions = widget.suggestionBuilder != null;
 
     _effectiveFocusNode.addListener(_handleFocusChanged);
     _nodeAttachment = _effectiveFocusNode.attach(context);
@@ -212,8 +308,8 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                       padding: EdgeInsets.zero,
                       itemCount: snapshot.data!.length,
                       itemBuilder: (BuildContext context, int index) {
-                        return _suggestions != null
-                            ? widget.suggestionBuilder(
+                        return (_suggestions != null && _showSuggestions)
+                            ? widget.suggestionBuilder!(
                                 context,
                                 this,
                                 _suggestions![index] as T,
@@ -247,6 +343,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     );
   }
 
+  /// Sets the selected suggestions to the textbox
   void selectSuggestion(T data) {
     if (!_hasReachedMaxChips) {
       setState(() => _chips = _chips..add(data));
@@ -264,6 +361,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     }
   }
 
+  /// Deletes the user tapped chip
   void deleteChip(T data) {
     if (widget.enabled) {
       setState(() => _chips.remove(data));
@@ -296,18 +394,21 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     });
   }
 
+  /// Handles the search for suggestions.
   Future<void> _onSearchChanged(String value) async {
-    final localId = ++_searchId;
-    final results = await widget.findSuggestions(value);
-    if (_searchId == localId && mounted) {
-      setState(
-        () => _suggestions =
-            results.where((r) => !_chips.contains(r)).toList(growable: false),
-      );
-    }
-    _suggestionsStreamController.add(_suggestions ?? []);
-    if (!_suggestionsBoxController.isOpened && !_hasReachedMaxChips) {
-      _suggestionsBoxController.open();
+    if (_showSuggestions && widget.findSuggestions != null) {
+      final localId = ++_searchId;
+      final results = await widget.findSuggestions!(value);
+      if (_searchId == localId && mounted) {
+        setState(
+          () => _suggestions =
+              results.where((r) => !_chips.contains(r)).toList(growable: false),
+        );
+      }
+      _suggestionsStreamController.add(_suggestions ?? []);
+      if (!_suggestionsBoxController.isOpened && !_hasReachedMaxChips) {
+        _suggestionsBoxController.open();
+      }
     }
   }
 
@@ -320,11 +421,12 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
 
   @override
   void updateEditingValue(TextEditingValue value) {
-    //print("updateEditingValue FIRED with ${value.text}");
-    // _receivedRemoteTextEditingValue = value;
     final oldTextEditingValue = _value;
     if (value.text != oldTextEditingValue.text) {
-      setState(() => _value = value);
+      setState(() {
+        _value = value;
+      });
+
       if (value.replacementCharactersCount <
           oldTextEditingValue.replacementCharactersCount) {
         final removedChip = _chips.last;
@@ -360,7 +462,6 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         ),
       );
     }
-    // _closeInputConnectionIfNeeded(); //Hack for #34 (https://github.com/danvick/wallet_words/issues/34#issuecomment-684505282). TODO: Find permanent fix
     _textInputConnection ??= TextInput.attach(this, textInputConfiguration);
     _textInputConnection?.setEditingState(_value);
     _textInputConnection?.show();
@@ -402,9 +503,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
   }
 
   @override
-  void performPrivateCommand(String action, Map<String, dynamic> data) {
-    //TODO
-  }
+  void performPrivateCommand(String action, Map<String, dynamic> data) {}
 
   @override
   void didUpdateWidget(covariant WordsChip<T> oldWidget) {
@@ -473,6 +572,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       },
       child: SizeChangedLayoutNotifier(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -483,7 +583,9 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                 isEmpty: _value.text.isEmpty && _chips.isEmpty,
                 child: Container(
                   height: widget.textBoxHeight,
+                  width: widget.textBoxWidth ?? double.maxFinite,
                   decoration: widget.textBoxDecoration,
+                  padding: widget.textBoxPadding,
                   child: Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 4,
@@ -495,8 +597,43 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
             ),
             CompositedTransformTarget(
               link: _layerLink,
-              child: Container(),
+              child: const SizedBox.shrink(),
             ),
+            if (widget.wordCountText != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: widget.wordCountText,
+              ),
+            if (widget.showErrorMsg)
+              Row(
+                children: [
+                  widget.errorIcon ?? const SizedBox.shrink(),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  widget.errorMsg ?? const SizedBox.shrink(),
+                ],
+              ),
+            if (widget.showWarningMsg)
+              Row(
+                children: [
+                  widget.warningIcon ?? const SizedBox.shrink(),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  widget.warningMsg ?? const SizedBox.shrink(),
+                ],
+              ),
+            if (widget.showSuccessMsg)
+              Row(
+                children: [
+                  widget.successIcon ?? const SizedBox.shrink(),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  widget.successMsg ?? const SizedBox.shrink(),
+                ],
+              ),
           ],
         ),
       ),
