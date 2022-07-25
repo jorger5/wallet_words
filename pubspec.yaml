@@ -1,7 +1,8 @@
 name: wallet_words
 description: Flutter library for building input fields with InputChips as input options.
 version: 1.0.0
-maintainer: https://github.com/jorger5/wallet_words
+homepage: https://github.com/jorger5/wallet_words
+maintainer: Jorge Rincon
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
