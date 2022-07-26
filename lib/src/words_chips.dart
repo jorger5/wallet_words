@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:wallet_words/src/constants.dart';
 import 'package:wallet_words/src/extensions/extensions.dart';
@@ -34,7 +35,7 @@ class WordsChip<T> extends StatefulWidget {
     this.textOverflow = TextOverflow.clip,
     this.actionLabel,
     this.inputAction = TextInputAction.done,
-    this.keyboardAppearance = Brightness.light,
+    this.keyboardAppearance,
     this.textCapitalization = TextCapitalization.none,
     this.autofocus = false,
     this.allowChipEditing = false,
@@ -104,7 +105,7 @@ class WordsChip<T> extends StatefulWidget {
   /// Limit of the number of chips allowed.
   final int? maxChips;
 
-  /// Limit of the suggestions box. It is compared with the minimun allowed space.
+  /// Limit of the suggestions box height. It is compared with the minimun allowed space.
   final double? suggestionsBoxMaxHeight;
 
   /// Some text input customization.
@@ -118,7 +119,7 @@ class WordsChip<T> extends StatefulWidget {
   final TextInputAction inputAction;
 
   /// [Brightness] of the keyboard.
-  final Brightness keyboardAppearance;
+  final Brightness? keyboardAppearance;
 
   /// Offers [TextCapitalization] options.
   final TextCapitalization textCapitalization;
@@ -189,8 +190,10 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         inputType: widget.inputType,
         actionLabel: widget.actionLabel,
         inputAction: widget.inputAction,
-        keyboardAppearance: widget.keyboardAppearance,
+        keyboardAppearance: widget.keyboardAppearance ??
+            SchedulerBinding.instance.window.platformBrightness,
         textCapitalization: widget.textCapitalization,
+        autocorrect: false,
       );
 
   bool get _hasInputConnection =>
@@ -297,27 +300,25 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data!.isNotEmpty) {
               final suggestionsListView = Material(
-                child: ConstrainedBox(
+                child: Container(
+                  decoration: widget.suggestionsBoxDecoration,
                   constraints: BoxConstraints(
                     maxHeight: suggestionBoxHeight,
                   ),
-                  child: DecoratedBox(
-                    decoration: widget.suggestionsBoxDecoration,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.zero,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return (_suggestions != null && _showSuggestions)
-                            ? widget.suggestionBuilder!(
-                                context,
-                                this,
-                                _suggestions![index] as T,
-                                _suggestions?.length ?? 0,
-                              )
-                            : Container();
-                      },
-                    ),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return (_suggestions != null && _showSuggestions)
+                          ? widget.suggestionBuilder!(
+                              context,
+                              this,
+                              _suggestions![index] as T,
+                              _suggestions?.length ?? 0,
+                            )
+                          : Container();
+                    },
                   ),
                 ),
               );
@@ -327,12 +328,12 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                   link: _layerLink,
                   showWhenUnlinked: false,
                   offset: compositedTransformFollowerOffset,
-                  child: !showTop
-                      ? suggestionsListView
-                      : FractionalTranslation(
+                  child: showTop
+                      ? FractionalTranslation(
                           translation: const Offset(0, -1),
                           child: suggestionsListView,
-                        ),
+                        )
+                      : suggestionsListView,
                 ),
               );
             }
@@ -396,6 +397,11 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
 
   /// Handles the search for suggestions.
   Future<void> _onSearchChanged(String value) async {
+    if (value.contains(' ') || value.isEmpty) {
+      _suggestionsBoxController.close();
+      return;
+    }
+
     if (_showSuggestions && widget.findSuggestions != null) {
       final localId = ++_searchId;
       final results = await widget.findSuggestions!(value);
@@ -426,8 +432,21 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       setState(() {
         _value = value;
       });
+      if (_value.text.contains(' ')) {
+        final updatedText = _value.text.replaceAll(' ', '');
+        final updatex = updatedText.substring(_chips.length);
 
-      if (value.replacementCharactersCount <
+        setState(
+          () {
+            _suggestions = null;
+            _chips = _chips..add(updatex as T);
+          },
+        );
+        _updateTextInputState(replaceText: true);
+        widget.onChanged(_chips.toList(growable: false));
+
+        _suggestionsStreamController.add(_suggestions);
+      } else if (value.replacementCharactersCount <
           oldTextEditingValue.replacementCharactersCount) {
         final removedChip = _chips.last;
         setState(
@@ -447,7 +466,10 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     }
   }
 
-  void _updateTextInputState({bool replaceText = false, String putText = ''}) {
+  void _updateTextInputState({
+    bool replaceText = false,
+    String putText = '',
+  }) {
     if (replaceText || putText != '') {
       final updatedText =
           String.fromCharCodes(_chips.map((_) => kObjectReplacementChar)) +
