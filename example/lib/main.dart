@@ -117,21 +117,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   return 'error';
                 },
                 showSuggestionsOnTop: false,
-                showErrorMsg: true,
-                errorIcon:
-                    const Icon(Icons.cancel, size: 20, color: Colors.red),
-                errorMsg: const Text('Error is present'),
-                showSuccessMsg: true,
-                successIcon: const Icon(
-                  Icons.check_circle,
-                  size: 20,
-                  color: Colors.green,
+                feedbackMsg: Row(
+                  children: const [
+                    Icon(Icons.cancel, size: 20, color: Colors.red),
+                    Text('Error is present'),
+                  ],
                 ),
-                successMsg: const Text('All good'),
-                showWarningMsg: true,
-                warningIcon:
-                    const Icon(Icons.error, size: 20, color: Colors.orange),
-                warningMsg: const Text('Warning'),
                 wordCountText: Text('$_wordCount words'),
               ),
             ],

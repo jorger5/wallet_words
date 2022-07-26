@@ -42,15 +42,7 @@ class WordsChip<T> extends StatefulWidget {
     this.focusNode,
     this.initialSuggestions,
     this.suggestionsBoxDecoration = const BoxDecoration(),
-    this.showErrorMsg = false,
-    this.showSuccessMsg = false,
-    this.errorIcon,
-    this.warningIcon,
-    this.successIcon,
-    this.errorMsg,
-    this.warningMsg,
-    this.successMsg,
-    this.showWarningMsg = false,
+    this.feedbackMsg,
     this.wordCountText,
   })  : assert(
           maxChips == null || initialValue.length <= maxChips,
@@ -141,33 +133,9 @@ class WordsChip<T> extends StatefulWidget {
   /// Word count to show
   final Widget? wordCountText;
 
-  // Status messsages
-  /// Show success message
-  final bool showSuccessMsg;
-
-  /// Success icon to show before [successMsg]
-  final Widget? successIcon;
-
-  /// Success message to show after [successIcon]
-  final Widget? successMsg;
-
-  /// Show error message
-  final bool showErrorMsg;
-
-  /// Error icon to show before [errorMsg]
-  final Widget? errorIcon;
-
-  /// Error message to show after [errorIcon]
-  final Widget? errorMsg;
-
-  /// Show warning message
-  final bool showWarningMsg;
-
-  /// Warning icon to show before [warningMsg]
-  final Widget? warningIcon;
-
-  /// Warning message to show after [warningIcon]
-  final Widget? warningMsg;
+  // Status messsage
+  /// Optionl message to show the user, providing feedback on what's been typed
+  final Widget? feedbackMsg;
 
   @override
   WordsChipState<T> createState() => WordsChipState<T>();
@@ -626,36 +594,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                 alignment: Alignment.centerRight,
                 child: widget.wordCountText,
               ),
-            if (widget.showErrorMsg)
-              Row(
-                children: [
-                  widget.errorIcon ?? const SizedBox.shrink(),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  widget.errorMsg ?? const SizedBox.shrink(),
-                ],
-              ),
-            if (widget.showWarningMsg)
-              Row(
-                children: [
-                  widget.warningIcon ?? const SizedBox.shrink(),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  widget.warningMsg ?? const SizedBox.shrink(),
-                ],
-              ),
-            if (widget.showSuccessMsg)
-              Row(
-                children: [
-                  widget.successIcon ?? const SizedBox.shrink(),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  widget.successMsg ?? const SizedBox.shrink(),
-                ],
-              ),
+            if (widget.feedbackMsg != null) widget.feedbackMsg!,
           ],
         ),
       ),

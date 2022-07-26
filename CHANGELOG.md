@@ -1,3 +1,7 @@
+## [1.0.2] - 26-Jul-2022
+
+- Simplified feedback msg, now passing just a widget that renders if != null
+
 ## [1.0.1] - 25-Jul-2022
 
 - Added close suggestion box on empty text box.
