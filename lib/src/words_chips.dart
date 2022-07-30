@@ -44,6 +44,12 @@ class WordsChip<T> extends StatefulWidget {
     this.suggestionsBoxDecoration = const BoxDecoration(),
     this.feedbackMsg,
     this.wordCountText,
+    this.tooltip,
+    this.tooltipBackgroundColor = const Color(0xff000000),
+    this.tooltipArrowArc = 0.1,
+    this.tooltipRadius = 5,
+    this.tooltipArrowHeight = 4,
+    this.tooltipArrowWidth = 10,
   })  : assert(
           maxChips == null || initialValue.length <= maxChips,
           'Max chips must not be null and greater than initial value length ',
@@ -137,6 +143,24 @@ class WordsChip<T> extends StatefulWidget {
   /// Optionl message to show the user, providing feedback on what's been typed
   final Widget? feedbackMsg;
 
+  /// Tooltip widget that may be displayed
+  final Widget? tooltip;
+
+  /// Tooltip background color for
+  final Color tooltipBackgroundColor;
+
+  /// Tooltip arrow arc
+  final double tooltipArrowArc;
+
+  /// Tooltip radius
+  final double tooltipRadius;
+
+  /// Tooltip arrow height
+  final double tooltipArrowHeight;
+
+  /// Tooltip arrow width
+  final double tooltipArrowWidth;
+
   @override
   WordsChipState<T> createState() => WordsChipState<T>();
 }
@@ -145,6 +169,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
   Set<T> _chips = <T>{};
   List<T?>? _suggestions;
   bool _showSuggestions = false;
+  bool _showTooltip = false;
   final StreamController<List<T?>?> _suggestionsStreamController =
       StreamController<List<T>?>.broadcast();
   int _searchId = 0;
@@ -239,6 +264,9 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
   }
 
   void requestKeyboard() {
+    setState(() {
+      _showTooltip = false;
+    });
     if (_effectiveFocusNode.hasFocus) {
       _openInputConnection();
     } else {
@@ -567,21 +595,57 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: requestKeyboard,
+              onLongPressEnd: (_) => setState(() {
+                _showTooltip = true;
+              }),
               child: InputDecorator(
                 decoration: widget.decoration,
                 isFocused: _effectiveFocusNode.hasFocus,
                 isEmpty: _value.text.isEmpty && _chips.isEmpty,
-                child: Container(
-                  height: widget.textBoxHeight,
-                  width: widget.textBoxWidth ?? double.maxFinite,
-                  decoration: widget.textBoxDecoration,
-                  padding: widget.textBoxPadding,
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 4,
-                    runSpacing: 4,
-                    children: chipsChildren,
-                  ),
+                child: Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    Container(
+                      height: widget.textBoxHeight,
+                      width: widget.textBoxWidth ?? double.maxFinite,
+                      decoration: widget.textBoxDecoration,
+                      padding: widget.textBoxPadding,
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: chipsChildren,
+                      ),
+                    ),
+                    if (widget.tooltip != null && _showTooltip)
+                      TextButton(
+                        onPressed: () async {
+                          final copiedString =
+                              (await Clipboard.getData(Clipboard.kTextPlain))
+                                      ?.text ??
+                                  '';
+                          final wordList = copiedString.split(' ');
+                          for (final word in wordList) {
+                            selectSuggestion(word as T);
+                          }
+                          setState(() {
+                            _showTooltip = false;
+                          });
+                        },
+                        child: DecoratedBox(
+                          decoration: ShapeDecoration(
+                            color: widget.tooltipBackgroundColor,
+                            shape: TooltipShapeBorder(
+                              arrowArc: widget.tooltipArrowArc,
+                              radius: widget.tooltipRadius,
+                              arrowHeight: widget.tooltipArrowHeight,
+                              arrowWidth: widget.tooltipArrowWidth,
+                            ),
+                          ),
+                          child: widget.tooltip,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

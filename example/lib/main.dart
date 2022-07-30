@@ -104,7 +104,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                maxChips: 10,
                 textStyle: const TextStyle(
                   height: 1.5,
                   fontFamily: 'Roboto',
@@ -124,6 +123,21 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 ),
                 wordCountText: Text('$_wordCount words'),
+                tooltip: SizedBox(
+                  width: 70.sp,
+                  height: 35.sp,
+                  child: const Center(
+                    child: Text(
+                      'Paste',
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 12,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                tooltipArrowHeight: 5,
               ),
             ],
           ),
