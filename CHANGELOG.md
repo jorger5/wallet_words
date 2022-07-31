@@ -4,6 +4,10 @@
 
 ## [1.0.3] - 26-Jul-2022
 
+- Added better examples file and images.
+
+## [1.0.3] - 26-Jul-2022
+
 - Added paste words capability, now a user sees a tooltip and can paste.
 
 ## [1.0.2] - 26-Jul-2022
