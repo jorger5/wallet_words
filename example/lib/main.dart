@@ -119,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 feedbackMsg: Row(
                   children: const [
                     Icon(Icons.cancel, size: 20, color: Colors.red),
-                    Text('Error is present'),
+                    Text('Custom Error msg'),
                   ],
                 ),
                 wordCountText: Text('$_wordCount words'),
