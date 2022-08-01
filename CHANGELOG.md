@@ -1,8 +1,8 @@
-## [1.0.4] - 26-Jul-2022
+## [1.0.5] - 1-Aug-2022
 
 - Added better examples file and images.
 
-## [1.0.3] - 26-Jul-2022
+## [1.0.4] - 26-Jul-2022
 
 - Added better examples file and images.
 
