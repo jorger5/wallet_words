@@ -122,10 +122,16 @@ class _MyHomePageState extends State<MyHomePage> {
                     Text('Custom Error msg'),
                   ],
                 ),
+                minTextBoxHeight: 100,
+                maxChips: 24,
                 wordCountText: Text('$_wordCount words'),
-                tooltip: SizedBox(
+                tooltip: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
                   width: 70.sp,
-                  height: 35.sp,
+                  height: 40.sp,
                   child: const Center(
                     child: Text(
                       'Paste',

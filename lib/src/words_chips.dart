@@ -8,7 +8,6 @@ import 'package:wallet_words/src/constants.dart';
 import 'package:wallet_words/src/extensions/extensions.dart';
 import 'package:wallet_words/src/helpers.dart';
 import 'package:wallet_words/src/models/type_defs.dart';
-
 import 'package:wallet_words/src/suggestions_box_controller.dart';
 import 'package:wallet_words/src/text_cursor.dart';
 
@@ -27,7 +26,7 @@ class WordsChip<T> extends StatefulWidget {
     this.suggestionsBoxMaxHeight,
     this.validator,
     this.textBoxDecoration = const BoxDecoration(),
-    this.textBoxHeight = 200,
+    this.minTextBoxHeight = 200,
     this.textBoxWidth,
     this.textBoxPadding = const EdgeInsets.all(8),
     this.showSuggestionsOnTop = true,
@@ -50,8 +49,9 @@ class WordsChip<T> extends StatefulWidget {
     this.tooltipRadius = 5,
     this.tooltipArrowHeight = 4,
     this.tooltipArrowWidth = 10,
+    this.tooltipHasArrow = false,
   })  : assert(
-          maxChips == null || initialValue.length <= maxChips,
+          initialValue.length <= maxChips,
           'Max chips must not be null and greater than initial value length ',
         ),
         assert(
@@ -86,7 +86,7 @@ class WordsChip<T> extends StatefulWidget {
   final BoxDecoration textBoxDecoration;
 
   /// Height of the text box.
-  final double textBoxHeight;
+  final double minTextBoxHeight;
 
   /// Width of the text box.
   final double? textBoxWidth;
@@ -101,7 +101,7 @@ class WordsChip<T> extends StatefulWidget {
   final List<T>? initialSuggestions;
 
   /// Limit of the number of chips allowed.
-  final int? maxChips;
+  final int maxChips;
 
   /// Limit of the suggestions box height. It is compared with the minimun allowed space.
   final double? suggestionsBoxMaxHeight;
@@ -145,6 +145,11 @@ class WordsChip<T> extends StatefulWidget {
 
   /// Tooltip widget that may be displayed
   final Widget? tooltip;
+
+  /// To allow tooltip arrow decoration as in iOS native tooltip.
+  ///
+  /// If false, you will have to provide your own decoration such as background color, borders, etc.
+  final bool tooltipHasArrow;
 
   /// Tooltip background color for
   final Color tooltipBackgroundColor;
@@ -192,8 +197,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
   bool get _hasInputConnection =>
       _textInputConnection != null && _textInputConnection!.attached;
 
-  bool get _hasReachedMaxChips =>
-      widget.maxChips != null && _chips.length >= widget.maxChips!;
+  bool get _hasReachedMaxChips => _chips.length >= widget.maxChips;
 
   FocusNode? _focusNode;
   FocusNode get _effectiveFocusNode =>
@@ -562,7 +566,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         height: 30,
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
+          children: [
             Flexible(
               child: Text(
                 _value.normalCharactersText,
@@ -591,7 +595,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       child: SizeChangedLayoutNotifier(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+          children: [
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: requestKeyboard,
@@ -606,7 +610,9 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                   alignment: Alignment.topCenter,
                   children: [
                     Container(
-                      height: widget.textBoxHeight,
+                      constraints: BoxConstraints(
+                        minHeight: widget.minTextBoxHeight,
+                      ),
                       width: widget.textBoxWidth ?? double.maxFinite,
                       decoration: widget.textBoxDecoration,
                       padding: widget.textBoxPadding,
@@ -625,25 +631,33 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                                       ?.text ??
                                   '';
                           final wordList = copiedString.split(' ');
-                          for (final word in wordList) {
-                            selectSuggestion(word as T);
+
+                          final length = min(widget.maxChips, wordList.length);
+                          // Copies only the words that are allowed by maxChips variable
+                          for (var i = 0; i < length; i++) {
+                            selectSuggestion(wordList[i] as T);
                           }
+
                           setState(() {
                             _showTooltip = false;
                           });
                         },
-                        child: DecoratedBox(
-                          decoration: ShapeDecoration(
-                            color: widget.tooltipBackgroundColor,
-                            shape: TooltipShapeBorder(
-                              arrowArc: widget.tooltipArrowArc,
-                              radius: widget.tooltipRadius,
-                              arrowHeight: widget.tooltipArrowHeight,
-                              arrowWidth: widget.tooltipArrowWidth,
-                            ),
-                          ),
-                          child: widget.tooltip,
-                        ),
+                        child: widget.tooltipHasArrow
+                            ? DecoratedBox(
+                                decoration: ShapeDecoration(
+                                  color: widget.tooltipBackgroundColor,
+                                  shape: TooltipShapeBorder(
+                                    arrowArc: widget.tooltipArrowArc,
+                                    radius: widget.tooltipRadius,
+                                    arrowHeight: widget.tooltipArrowHeight,
+                                    arrowWidth: widget.tooltipArrowWidth,
+                                  ),
+                                ),
+                                child: widget.tooltip,
+                              )
+                            : Container(
+                                child: widget.tooltip,
+                              ),
                       ),
                   ],
                 ),
