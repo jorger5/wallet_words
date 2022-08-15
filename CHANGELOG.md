@@ -1,3 +1,7 @@
+## [1.0.7]
+
+- Fix defunct state error by adding a if(mounted) on initState
+
 ## [1.0.6]
 
 - Added adaptive textbox size and customizable tooltip box.

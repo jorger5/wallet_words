@@ -229,6 +229,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     _effectiveFocusNode.canRequestFocus = _canRequestFocus;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       final renderBox = context.findRenderObject() as RenderBox?;
       assert(
         renderBox != null,
