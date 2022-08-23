@@ -429,12 +429,27 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
   @override
   void updateEditingValue(TextEditingValue value) {
     final oldTextEditingValue = _value;
-    if (value.text != oldTextEditingValue.text) {
+    final workedEditingValue = value.copyWith(
+      text: value.text.trim(),
+      selection: value.selection,
+      composing: value.composing,
+    );
+
+    // If there's a blank space in the text, we return to avoid typing blank
+    // spaces and only if adding a new space to the word list, meaning that [oldTextEditingValue]
+    // is shorter than [workedEditingValue]
+
+    if (workedEditingValue.text == '' &&
+        oldTextEditingValue.text.length < workedEditingValue.text.length) {
+      return;
+    }
+
+    if (workedEditingValue.text != oldTextEditingValue.text) {
       setState(() {
-        _value = value;
+        _value = workedEditingValue;
       });
-      if (_value.text.contains(' ')) {
-        final updatedText = _value.text.replaceAll(' ', '');
+      if (workedEditingValue.text.contains(' ')) {
+        final updatedText = workedEditingValue.text.replaceAll(' ', '');
         final updatex = updatedText.substring(_chips.length);
 
         setState(
@@ -447,11 +462,12 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         widget.onChanged(_chips.toList(growable: false));
 
         _suggestionsStreamController.add(_suggestions);
-      } else if (value.replacementCharactersCount <
+      } else if (workedEditingValue.replacementCharactersCount <
           oldTextEditingValue.replacementCharactersCount) {
         final removedChip = _chips.last;
         setState(
-          () => _chips = Set.of(_chips.take(value.replacementCharactersCount)),
+          () => _chips = Set.of(
+              _chips.take(workedEditingValue.replacementCharactersCount)),
         );
         widget.onChanged(_chips.toList(growable: false));
         String? putText = '';
