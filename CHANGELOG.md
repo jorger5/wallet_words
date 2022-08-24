@@ -1,3 +1,8 @@
+## [1.1.0+1]
+
+- Provide pasted wordList to onChanged callback
+- Clear hidden special characters from pasted items
+
 ## [1.1.0]
 
 - Words are no longer added when pressing space as empty chips

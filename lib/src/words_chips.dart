@@ -644,13 +644,22 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                               (await Clipboard.getData(Clipboard.kTextPlain))
                                       ?.text ??
                                   '';
-                          final wordList = copiedString.split(' ');
+
+                          /// Copying from clipboard might have some special characters, this RegExp removes them
+                          final wordList = copiedString
+                              .split(' ')
+                              .map(
+                                (e) => e.replaceAll(RegExp('[^A-Za-z]'), ''),
+                              )
+                              .toList();
 
                           final length = min(widget.maxChips, wordList.length);
                           // Copies only the words that are allowed by maxChips variable
                           for (var i = 0; i < length; i++) {
                             selectSuggestion(wordList[i] as T);
                           }
+                          // We provided the new list of words on the onChanged widget
+                          widget.onChanged(wordList as List<T>);
 
                           setState(() {
                             _showTooltip = false;
