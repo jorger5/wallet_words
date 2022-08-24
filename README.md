@@ -88,6 +88,7 @@ WordsChip<String>(
         _wordCount = data.length;
         });
     },
+    suggestionsHeightFromTop: 250,
     tooltip: SizedBox(
             width: 70.sp,
             height: 35.sp,

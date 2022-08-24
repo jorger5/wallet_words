@@ -1,3 +1,8 @@
+## [1.1.0]
+
+- Words are no longer added when pressing space as empty chips
+- Created "suggestionsHeightFromTop" parameter which takes a double and allows to set the suggestion box from the top of the screen
+
 ## [1.0.7]
 
 - Fix defunct state error by adding a if(mounted) on initState

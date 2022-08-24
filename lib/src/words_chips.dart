@@ -29,7 +29,6 @@ class WordsChip<T> extends StatefulWidget {
     this.minTextBoxHeight = 200,
     this.textBoxWidth,
     this.textBoxPadding = const EdgeInsets.all(8),
-    this.showSuggestionsOnTop = true,
     this.inputType = TextInputType.text,
     this.textOverflow = TextOverflow.clip,
     this.actionLabel,
@@ -41,6 +40,7 @@ class WordsChip<T> extends StatefulWidget {
     this.focusNode,
     this.initialSuggestions,
     this.suggestionsBoxDecoration = const BoxDecoration(),
+    this.suggestionsHeightFromTop = 100,
     this.feedbackMsg,
     this.wordCountText,
     this.tooltip,
@@ -78,9 +78,6 @@ class WordsChip<T> extends StatefulWidget {
   /// [TextStyle] of the text written in the box.
   final TextStyle? textStyle;
   final bool enabled;
-
-  /// Sets to show the suggestions on top of the text box.
-  final bool showSuggestionsOnTop;
 
   /// [BoxDecoration] of the text box where the user writes the text.
   final BoxDecoration textBoxDecoration;
@@ -129,7 +126,11 @@ class WordsChip<T> extends StatefulWidget {
   /// Allows to set an external [FocusNode] for more control.
   final FocusNode? focusNode;
 
+  /// Decoration for the suggestions box.
   final BoxDecoration suggestionsBoxDecoration;
+
+  /// Height from the top of the screen to the suggestions box.
+  final double suggestionsHeightFromTop;
 
   /// Optional function to validate input from user
   /// and show error message if input is invalid.
@@ -284,16 +285,13 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       builder: (context) {
         final size = renderBox.size;
         final renderBoxOffset = renderBox.localToGlobal(Offset.zero);
-        final showTop = widget.showSuggestionsOnTop;
+
         var suggestionBoxHeight =
             UIHelpers.getSuggestedBoxHeight(context, size, renderBoxOffset);
         if (widget.suggestionsBoxMaxHeight != null) {
           suggestionBoxHeight =
               min(suggestionBoxHeight, widget.suggestionsBoxMaxHeight!);
         }
-
-        final compositedTransformFollowerOffset =
-            showTop ? Offset(0, -size.height) : Offset.zero;
 
         return StreamBuilder<List<T?>?>(
           stream: _suggestionsStreamController.stream,
@@ -323,19 +321,15 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                   ),
                 ),
               );
-              return Positioned(
-                width: size.width,
-                child: CompositedTransformFollower(
-                  link: _layerLink,
-                  showWhenUnlinked: false,
-                  offset: compositedTransformFollowerOffset,
-                  child: showTop
-                      ? FractionalTranslation(
-                          translation: const Offset(0, -1),
-                          child: suggestionsListView,
-                        )
-                      : suggestionsListView,
-                ),
+              return Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  Positioned(
+                    top: widget.suggestionsHeightFromTop,
+                    width: size.width,
+                    child: suggestionsListView,
+                  ),
+                ],
               );
             }
             return Container();
@@ -467,7 +461,10 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         final removedChip = _chips.last;
         setState(
           () => _chips = Set.of(
-              _chips.take(workedEditingValue.replacementCharactersCount)),
+            _chips.take(
+              workedEditingValue.replacementCharactersCount,
+            ),
+          ),
         );
         widget.onChanged(_chips.toList(growable: false));
         String? putText = '';
