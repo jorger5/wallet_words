@@ -420,8 +420,32 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     }
   }
 
+  /// Takes a list of words and sets them in the fields and returns them on the
+  /// onChanged callback.
+  void setCopiedWords(List<String> wordList) {
+    final length = min(widget.maxChips, wordList.length);
+    // Copies only the words that are allowed by maxChips variable
+    for (var i = 0; i < length; i++) {
+      selectSuggestion(wordList[i] as T);
+    }
+    // We provided the new list of words on the onChanged widget
+    widget.onChanged(wordList as List<T>);
+  }
+
   @override
   void updateEditingValue(TextEditingValue value) {
+    final wordList = value.text
+        .split(' ')
+        .map(
+          (e) => e.replaceAll(RegExp('[^A-Za-z]'), ''),
+        )
+        .toList();
+
+    // If the user pasted the whole word list, we set the words in the fields
+    if (wordList.length >= 12) {
+      setCopiedWords(wordList);
+      return;
+    }
     final oldTextEditingValue = _value;
     final workedEditingValue = value.copyWith(
       text: value.text.trim(),
@@ -653,14 +677,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                               )
                               .toList();
 
-                          final length = min(widget.maxChips, wordList.length);
-                          // Copies only the words that are allowed by maxChips variable
-                          for (var i = 0; i < length; i++) {
-                            selectSuggestion(wordList[i] as T);
-                          }
-                          // We provided the new list of words on the onChanged widget
-                          widget.onChanged(wordList as List<T>);
-
+                          setCopiedWords(wordList);
                           setState(() {
                             _showTooltip = false;
                           });

@@ -1,3 +1,7 @@
+## [1.1.0+2]
+
+- Fix word paste from Android native keyboard.
+
 ## [1.1.0+1]
 
 - Provide pasted wordList to onChanged callback
