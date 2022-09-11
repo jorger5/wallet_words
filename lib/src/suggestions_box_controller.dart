@@ -20,7 +20,6 @@ class SuggestionsBoxController {
   }
 
   void close() {
-    // debugPrint("Closing suggestion box");
     if (!_isOpened) return;
     assert(overlayEntry != null, 'Overlay entry must not be null');
     overlayEntry!.remove();

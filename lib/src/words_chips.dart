@@ -434,6 +434,14 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
 
   @override
   void updateEditingValue(TextEditingValue value) {
+    // We need to clean the text for it might contain hidden special characters
+    final updatedText = value.text.replaceAll(RegExp('[^A-Za-z]'), '');
+
+    // print(value.text);
+    // print(value.text.contains(' '));
+
+    // When pasting from external sources, there might be some differences inside the String bytes
+    // for hidden special characters, this RegExp cleans all characters thar are not A to Z
     final wordList = value.text
         .split(' ')
         .map(
@@ -453,10 +461,14 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       composing: value.composing,
     );
 
+    // TODO(me): CHECK THIS TO RETURN IF EMPTY SPACE BEFORE
+    // if this is true, then it means that we have empty spaces before the word we
+    // actually want to type, this is to avoid entering a word with a space
+    // beforehand
+
     // If there's a blank space in the text, we return to avoid typing blank
     // spaces and only if adding a new space to the word list, meaning that [oldTextEditingValue]
     // is shorter than [workedEditingValue]
-
     if (workedEditingValue.text == '' &&
         oldTextEditingValue.text.length < workedEditingValue.text.length) {
       return;
@@ -466,6 +478,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       setState(() {
         _value = workedEditingValue;
       });
+
       if (workedEditingValue.text.contains(' ')) {
         final updatedText = workedEditingValue.text.replaceAll(' ', '');
         final updatex = updatedText.substring(_chips.length);
@@ -501,6 +514,24 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         _updateTextInputState();
       }
       _onSearchChanged(_value.normalCharactersText);
+    } else {
+      // Here we evaluate if the word typed as an space after it
+      // ie: 'hello '.
+      if ('${workedEditingValue.text} ' == value.text) {
+        if (updatedText.isEmpty) {
+          return;
+        }
+
+        setState(
+          () {
+            _suggestions = null;
+            _chips = _chips..add(updatedText as T);
+          },
+        );
+        _updateTextInputState(replaceText: true);
+        widget.onChanged(_chips.toList(growable: false));
+        _suggestionsStreamController.add(_suggestions);
+      }
     }
   }
 

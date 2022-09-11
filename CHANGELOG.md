@@ -1,3 +1,7 @@
+## [1.1.0+3]
+
+- Fix word adding on space bar pressed.
+
 ## [1.1.0+2]
 
 - Fix word paste from Android native keyboard.
