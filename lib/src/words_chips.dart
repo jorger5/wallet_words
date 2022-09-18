@@ -37,6 +37,7 @@ class WordsChip<T> extends StatefulWidget {
     this.textCapitalization = TextCapitalization.none,
     this.autofocus = false,
     this.allowChipEditing = false,
+    this.enableNativeSuggestions = true,
     this.focusNode,
     this.initialSuggestions,
     this.suggestionsBoxDecoration = const BoxDecoration(),
@@ -123,6 +124,9 @@ class WordsChip<T> extends StatefulWidget {
   final bool autofocus;
   final bool allowChipEditing;
 
+  /// Allows for the native keyboard to show suggestions
+  final bool enableNativeSuggestions;
+
   /// Allows to set an external [FocusNode] for more control.
   final FocusNode? focusNode;
 
@@ -193,6 +197,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
             SchedulerBinding.instance.window.platformBrightness,
         textCapitalization: widget.textCapitalization,
         autocorrect: false,
+        enableSuggestions: widget.enableNativeSuggestions,
       );
 
   bool get _hasInputConnection =>

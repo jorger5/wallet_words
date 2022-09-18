@@ -1,3 +1,7 @@
+## [1.1.1]
+
+- Add optional enable keyboard native suggestions for words typed.
+
 ## [1.1.0+3]
 
 - Fix word adding on space bar pressed.
