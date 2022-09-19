@@ -154,6 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     tooltipArrowHeight: 5,
+                    inputAction: TextInputAction.next,
                   ),
                 ],
               ),

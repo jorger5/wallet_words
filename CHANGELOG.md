@@ -1,3 +1,7 @@
+## [1.1.2]
+
+- Add capability to allow the user to type non-sense words and hide the keyboard after a certain number
+
 ## [1.1.1]
 
 - Add optional enable keyboard native suggestions for words typed.

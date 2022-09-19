@@ -19,6 +19,7 @@ class WordsChip<T> extends StatefulWidget {
     this.suggestionBuilder,
     this.findSuggestions,
     this.maxChips = 12,
+    this.hideKeyboardChipsNumber = 12,
     this.initialValue = const [],
     this.decoration = const InputDecoration(border: InputBorder.none),
     this.enabled = true,
@@ -100,6 +101,9 @@ class WordsChip<T> extends StatefulWidget {
 
   /// Limit of the number of chips allowed.
   final int maxChips;
+
+  /// Hide the keyboard (unfocus) when the word list reaches this number.
+  final int hideKeyboardChipsNumber;
 
   /// Limit of the suggestions box height. It is compared with the minimun allowed space.
   final double? suggestionsBoxMaxHeight;
@@ -522,7 +526,9 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
     } else {
       // Here we evaluate if the word typed as an space after it
       // ie: 'hello '.
-      if ('${workedEditingValue.text} ' == value.text) {
+      // Another case is when the user types a non-sense word.
+      if ('${workedEditingValue.text} ' == value.text ||
+          workedEditingValue.text == value.text) {
         if (updatedText.isEmpty) {
           return;
         }
@@ -569,18 +575,17 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       case TextInputAction.done:
       case TextInputAction.go:
       case TextInputAction.send:
+      case TextInputAction.next:
       case TextInputAction.search:
         if (_suggestions?.isNotEmpty ?? false) {
           selectSuggestion(_suggestions!.first as T);
         } else {
-          _effectiveFocusNode.unfocus();
+          updateEditingValue(_value);
         }
         break;
-
       // others
       case TextInputAction.none:
       case TextInputAction.unspecified:
-      case TextInputAction.next:
       case TextInputAction.previous:
       case TextInputAction.continueAction:
       case TextInputAction.join:
@@ -589,6 +594,12 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       case TextInputAction.newline:
         _effectiveFocusNode.unfocus();
         break;
+    }
+
+    // Hides the keyboard after the user types 12 words
+    if (_chips.toList().length == widget.hideKeyboardChipsNumber ||
+        _chips.toList().length == widget.maxChips) {
+      _effectiveFocusNode.unfocus();
     }
   }
 
