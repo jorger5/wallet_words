@@ -180,9 +180,16 @@ class WordsChip<T> extends StatefulWidget {
 }
 
 class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
+  /// List of chips to show.
   List<T> _chips = <T>[];
+
+  /// List of suggestions to show.
   List<T?>? _suggestions;
+
+  /// To show or hide suggestions.
   bool _showSuggestions = false;
+
+  /// To show or hide the paste tooltip.
   bool _showTooltip = false;
   final StreamController<List<T?>?> _suggestionsStreamController =
       StreamController<List<T>?>.broadcast();
