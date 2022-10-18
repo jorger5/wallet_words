@@ -180,7 +180,7 @@ class WordsChip<T> extends StatefulWidget {
 }
 
 class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
-  Set<T> _chips = <T>{};
+  List<T> _chips = <T>[];
   List<T?>? _suggestions;
   bool _showSuggestions = false;
   bool _showTooltip = false;
@@ -203,7 +203,6 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
         autocorrect: false,
         enableSuggestions: widget.enableNativeSuggestions,
       );
-
   bool get _hasInputConnection =>
       _textInputConnection != null && _textInputConnection!.attached;
 
@@ -506,7 +505,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
           oldTextEditingValue.replacementCharactersCount) {
         final removedChip = _chips.last;
         setState(
-          () => _chips = Set.of(
+          () => _chips = List.of(
             _chips.take(
               workedEditingValue.replacementCharactersCount,
             ),

@@ -1,3 +1,7 @@
+## [1.1.2+1]
+
+- Changed from Set to List of chips to allow for duplicate words.
+
 ## [1.1.2]
 
 - Add capability to allow the user to type non-sense words and hide the keyboard after a certain number
