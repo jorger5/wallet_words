@@ -416,10 +416,25 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       final localId = ++_searchId;
       final results = await widget.findSuggestions!(value);
       if (_searchId == localId && mounted) {
-        setState(
-          () => _suggestions =
-              results.where((r) => !_chips.contains(r)).toList(growable: false),
-        );
+        var hasRepeatedWord = false;
+
+        for (final word in results) {
+          if (_chips.contains(word)) {
+            hasRepeatedWord = true;
+            break;
+          }
+        }
+        if (hasRepeatedWord) {
+          setState(() {
+            _suggestions = results;
+          });
+        } else {
+          setState(
+            () => _suggestions = results
+                .where((r) => !_chips.contains(r))
+                .toList(growable: false),
+          );
+        }
       }
       _suggestionsStreamController.add(_suggestions ?? []);
       if (!_suggestionsBoxController.isOpened && !_hasReachedMaxChips) {

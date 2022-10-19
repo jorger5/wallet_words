@@ -1,3 +1,7 @@
+## [1.1.4]
+
+- Allowed suggestions to show repeated words.
+
 ## [1.1.3]
 
 - Changed from Set to List of chips to allow for duplicate words.

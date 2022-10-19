@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:appsize/appsize.dart';
 import 'package:flutter/material.dart';
 import 'package:wallet_words/wallet_words.dart';
@@ -69,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     key: _chipKey,
                     chipBuilder: (context, state, String word) {
                       return InputChip(
-                        key: ObjectKey(word),
+                        key: ObjectKey('${word}_${Random().nextInt(1000)}'),
                         label: Text(word),
                         onDeleted: () => state.deleteChip(word),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
