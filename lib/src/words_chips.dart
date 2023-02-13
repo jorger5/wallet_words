@@ -399,7 +399,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final renderBox = context.findRenderObject();
         if (renderBox != null) {
-          await Scrollable.of(context)?.position.ensureVisible(renderBox);
+          await Scrollable.of(context).position.ensureVisible(renderBox);
         }
       });
     });
@@ -795,4 +795,15 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
 
   @override
   void removeTextPlaceholder() {}
+
+  @override
+  void didChangeInputControl(
+    TextInputControl? oldControl,
+    TextInputControl? newControl,
+  ) {
+    // TODO(anyone): implement didChangeInputControl
+  }
+
+  @override
+  void performSelector(String selectorName) {}
 }

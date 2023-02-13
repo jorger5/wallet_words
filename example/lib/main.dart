@@ -34,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _chipKey = GlobalKey<WordsChipState>();
+  final _chipKey = GlobalKey<WordsChipState<String>>();
   int _wordCount = 0;
 
   @override
