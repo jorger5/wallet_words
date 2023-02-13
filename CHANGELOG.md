@@ -1,3 +1,7 @@
+## [2.0.0]
+
+- Updated to Dart 2.18 and Flutter 3.7
+
 ## [1.1.4]
 
 - Allowed suggestions to show repeated words.

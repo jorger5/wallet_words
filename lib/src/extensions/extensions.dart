@@ -39,14 +39,17 @@ class TooltipShapeBorder extends ShapeBorder {
 
   @override
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    final _rect = Rect.fromPoints(
+    final workedRect = Rect.fromPoints(
       rect.topLeft,
       rect.bottomRight - Offset(0, arrowHeight),
     );
-    final x = arrowWidth, y = arrowHeight, r = 1 - arrowArc;
+    final x = arrowWidth;
+    final y = arrowHeight;
+    final r = 1 - arrowArc;
+
     return Path()
-      ..addRRect(RRect.fromRectAndRadius(_rect, Radius.circular(radius)))
-      ..moveTo(_rect.bottomCenter.dx + x / 2, _rect.bottomCenter.dy)
+      ..addRRect(RRect.fromRectAndRadius(workedRect, Radius.circular(radius)))
+      ..moveTo(workedRect.bottomCenter.dx + x / 2, workedRect.bottomCenter.dy)
       ..relativeLineTo(-x / 2 * r, y * r)
       ..relativeQuadraticBezierTo(
         -x / 2 * (1 - r),
