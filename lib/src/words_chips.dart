@@ -679,7 +679,7 @@ class WordsChipState<T> extends State<WordsChip<T>> implements TextInputClient {
                 maxLines: 1,
                 overflow: widget.textOverflow,
                 style: widget.textStyle ??
-                    theme.textTheme.subtitle1!.copyWith(height: 1.5),
+                    theme.textTheme.titleMedium!.copyWith(height: 1.5),
               ),
             ),
             Flexible(
